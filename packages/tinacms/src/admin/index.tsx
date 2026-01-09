@@ -76,7 +76,24 @@ const SetPreviewFlag = ({
   return null;
 };
 
-const PreviewInner = ({ preview, config }) => {
+const PreviewInner = ({
+  preview,
+  action = 'edit',
+  config,
+}: {
+  preview: ({
+    url,
+    iframeRef,
+    action,
+    ...config
+  }: object & {
+    url: string;
+    iframeRef: React.MutableRefObject<HTMLIFrameElement>;
+    action: 'edit' | 'duplicate';
+  }) => JSX.Element;
+  config: object;
+  action: 'edit' | 'duplicate';
+}) => {
   const params = useParams();
   const navigate = useNavigate();
   const [url, setURL] = React.useState(`/${params['*']}`);
@@ -91,7 +108,7 @@ const PreviewInner = ({ preview, config }) => {
   }, [paramURL]);
   React.useEffect(() => {
     if ((reportedURL !== url || reportedURL !== paramURL) && reportedURL) {
-      navigate(`/~${reportedURL}`);
+      navigate(`${action === 'duplicate' ? '/duplicate' : ''}/~${reportedURL}`);
     }
   }, [reportedURL]);
 
@@ -108,7 +125,7 @@ const PreviewInner = ({ preview, config }) => {
     }, 100);
   }, [ref.current]);
   const Preview = preview;
-  return <Preview url={url} iframeRef={ref} {...config} />;
+  return <Preview url={url} iframeRef={ref} action={action} {...config} />;
 };
 
 const CheckSchema = ({
@@ -220,12 +237,30 @@ export const TinaAdmin = ({
                   <SetPreviewFlag preview={preview} cms={cms} />
                   <Routes>
                     {preview && (
-                      <Route
-                        path='/~/*'
-                        element={
-                          <PreviewInner config={config} preview={preview} />
-                        }
-                      />
+                      <>
+                        <Route
+                          path='/~/*'
+                          element={
+                            <PreviewInner
+                              config={config}
+                              preview={preview}
+                              action='edit'
+                              key='preview-edit'
+                            />
+                          }
+                        />
+                        <Route
+                          path='/duplicate/~/*'
+                          element={
+                            <PreviewInner
+                              config={config}
+                              preview={preview}
+                              action='duplicate'
+                              key='preview-duplicate'
+                            />
+                          }
+                        />
+                      </>
                     )}
                     <Route
                       path='graphql'
