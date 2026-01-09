@@ -21,7 +21,11 @@ import { ResetForm } from './reset-form';
 import { CreateBranchModal } from './create-branch-modal';
 
 export interface FormBuilderProps {
-  form: { tinaForm: Form; activeFieldName?: string };
+  form: {
+    tinaForm: Form;
+    activeFieldName?: string;
+    hoveringFieldName?: string;
+  };
   hideFooter?: boolean;
   label?: string;
   onPristineChange?: (_pristine: boolean) => unknown;
@@ -208,6 +212,7 @@ export const FormBuilder: FC<FormBuilderProps> = ({
                     <FieldsBuilder
                       form={tinaForm}
                       activeFieldName={form.activeFieldName}
+                      hoveringFieldName={form.hoveringFieldName}
                       fields={fieldGroup.fields}
                     />
                   ) : (
@@ -270,9 +275,9 @@ export const FormWrapper = ({
   return (
     <div
       data-test={`form:${id?.replace(/\\/g, '/')}`}
-      className='h-full overflow-y-auto max-h-full bg-gray-50'
+      className='h-full overflow-y-auto max-h-full bg-gray-50 @container'
     >
-      <div className='py-5 px-6'>{children}</div>
+      <div className='py-5 px-4'>{children}</div>
     </div>
   );
 };

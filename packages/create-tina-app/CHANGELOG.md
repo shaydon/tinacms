@@ -1,5 +1,17 @@
 # create-tina-app
 
+## 2.1.2
+
+### Patch Changes
+
+- [#6277](https://github.com/tinacms/tinacms/pull/6277) [`271a1d0`](https://github.com/tinacms/tinacms/commit/271a1d057234346fc127b6f259c766a8b26a603f) Thanks [@wicksipedia](https://github.com/wicksipedia)! - Fix - selected package manager would not be captured as telemetry when passed in as a parameter
+
+## 2.1.1
+
+### Patch Changes
+
+- [#6290](https://github.com/tinacms/tinacms/pull/6290) [`5befd81`](https://github.com/tinacms/tinacms/commit/5befd8147ee64c2590468182df319cd537506d0d) Thanks [@joshbermanssw](https://github.com/joshbermanssw)! - 🌎Telemetry - Add GeoIP for opt-in users
+
 ## 2.1.0
 
 ### Minor Changes

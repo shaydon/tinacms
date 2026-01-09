@@ -1,5 +1,19 @@
 # tina-graphql
 
+## 2.0.5
+
+### Patch Changes
+
+- Updated dependencies [[`a63401a`](https://github.com/tinacms/tinacms/commit/a63401a3dd8271258bc6bfb4cc22593c19e94c7d)]:
+  - @tinacms/schema-tools@2.2.0
+  - @tinacms/mdx@2.0.2
+
+## 2.0.4
+
+### Patch Changes
+
+- [#6084](https://github.com/tinacms/tinacms/pull/6084) [`d9ccf29`](https://github.com/tinacms/tinacms/commit/d9ccf29684e9889bcfee892b982c119e5bde2ef7) Thanks [@n-crrn](https://github.com/n-crrn)! - Refactors Resolver to improve clarity, fixes bug preventing most 'create{{ COLLECTION-NAME }}' queries from succeeding."
+
 ## 2.0.3
 
 ### Patch Changes

@@ -36,7 +36,8 @@ import { osInfo as getOsSystemInfo } from 'systeminformation';
 
 let posthogClient: PostHog | null = null;
 async function initializePostHog(
-  configEndpoint?: string
+  configEndpoint?: string,
+  disableGeoip?: boolean
 ): Promise<PostHog | null> {
   let apiKey: string | undefined;
   let endpoint: string | undefined;
@@ -56,6 +57,7 @@ async function initializePostHog(
 
   return new PostHog(apiKey, {
     host: endpoint,
+    disableGeoip: disableGeoip ?? true,
   });
 }
 
@@ -110,11 +112,12 @@ export async function run() {
   if (!opts.noTelemetry) {
     console.log(`\n${TextStylesBold.bold('Telemetry Notice')}`);
     console.log(
-      `To help the TinaCMS team improve the developer experience, create-tina-app collects anonymous usage statistics. This data helps us understand which environments and features are most important to support. Usage analytics may include: Operating system and version, package manager name and version (local only), Node.js version (local only), and the selected TinaCMS starter template.\nNo personal or project-specific code is ever collected. You can opt out at any time by passing the --noTelemetry flag.\n`
+      'To help the TinaCMS team improve the developer experience, create-tina-app collects anonymous usage statistics. This data helps us understand which environments and features are most important to support. Usage analytics may include: Operating system and version, package manager name and version (local only), Node.js version (local only), and the selected TinaCMS starter template.\nNo personal or project-specific code is ever collected. You can opt out at any time by passing the --noTelemetry flag.\n'
     );
 
     posthogClient = await initializePostHog(
-      'https://identity-v2.tinajs.io/v2/posthog-token'
+      'https://identity-v2.tinajs.io/v2/posthog-token',
+      false
     );
 
     // add os info
@@ -130,6 +133,14 @@ export async function run() {
     for (const pkgManager of PKG_MANAGERS) {
       telemetryData[`${pkgManager}-installed`] =
         installedPkgManagers.includes(pkgManager);
+    }
+
+    // capture params as telemetry data
+    if (opts.template) {
+      telemetryData['template'] = opts.template;
+    }
+    if (opts.pkgManager) {
+      telemetryData['package-manager'] = opts.pkgManager;
     }
   }
 
@@ -166,10 +177,7 @@ export async function run() {
           errorCategory: 'validation',
           step: TRACKING_STEPS.TEMPLATE_SELECT,
           fatal: true,
-          additionalProperties: {
-            ...telemetryData,
-            provided_template: opts.template,
-          },
+          additionalProperties: { ...telemetryData },
         }
       );
       if (posthogClient) await posthogClient.shutdown();
@@ -180,9 +188,6 @@ export async function run() {
   let pkgManager = opts.pkgManager;
   if (pkgManager) {
     if (!PKG_MANAGERS.find((_pkgManager) => _pkgManager === pkgManager)) {
-      spinner.fail(
-        `The provided package manager '${opts.pkgManager}' is not supported. Please provide one of the following: ${PKG_MANAGERS}`
-      );
       postHogCaptureError(
         posthogClient,
         userId,
@@ -193,13 +198,13 @@ export async function run() {
           errorCategory: 'validation',
           step: TRACKING_STEPS.PKG_MANAGER_SELECT,
           fatal: true,
-          additionalProperties: {
-            ...telemetryData,
-            provided_pkg_manager: opts.pkgManager,
-          },
+          additionalProperties: { ...telemetryData },
         }
       );
       if (posthogClient) await posthogClient.shutdown();
+      spinner.fail(
+        `The provided package manager '${opts.pkgManager}' is not supported. Please provide one of the following: ${PKG_MANAGERS}`
+      );
       exit(1);
     }
   }
@@ -252,8 +257,8 @@ export async function run() {
       exit(1);
     }
     pkgManager = res.packageManager;
-    telemetryData['package-manager'] = pkgManager;
   }
+  telemetryData['package-manager'] = pkgManager;
 
   let projectName = opts.projectName;
   if (!projectName) {
@@ -364,10 +369,7 @@ export async function run() {
         errorCategory: 'filesystem',
         step: TRACKING_STEPS.DIRECTORY_SETUP,
         fatal: true,
-        additionalProperties: {
-          ...telemetryData,
-          template: template.value,
-        },
+        additionalProperties: { ...telemetryData },
       }
     );
     if (posthogClient) await posthogClient.shutdown();
@@ -386,10 +388,7 @@ export async function run() {
       errorCategory: 'filesystem',
       step: TRACKING_STEPS.DIRECTORY_SETUP,
       fatal: true,
-      additionalProperties: {
-        ...telemetryData,
-        template: template.value,
-      },
+      additionalProperties: { ...telemetryData },
     });
     if (posthogClient) await posthogClient.shutdown();
     exit(1);
@@ -397,6 +396,7 @@ export async function run() {
 
   try {
     if (themeChoice) {
+      telemetryData['theme'] = themeChoice;
       // Add selected theme to content/settings/config.json
       await updateThemeSettings(rootDir, themeChoice);
     }
@@ -417,11 +417,7 @@ export async function run() {
       errorCategory: 'template',
       step: TRACKING_STEPS.DOWNLOADING_TEMPLATE,
       fatal: true,
-      additionalProperties: {
-        ...telemetryData,
-        template: template.value,
-        theme: themeChoice,
-      },
+      additionalProperties: { ...telemetryData },
     });
     if (posthogClient) await posthogClient.shutdown();
     exit(1);
@@ -440,11 +436,7 @@ export async function run() {
       errorCategory: 'installation',
       step: TRACKING_STEPS.INSTALLING_PACKAGES,
       fatal: false,
-      additionalProperties: {
-        ...telemetryData,
-        template: template.value,
-        package_manager: pkgManager,
-      },
+      additionalProperties: { ...telemetryData },
     });
   }
 
@@ -462,10 +454,7 @@ export async function run() {
       errorCategory: 'git',
       step: TRACKING_STEPS.GIT_INIT,
       fatal: false,
-      additionalProperties: {
-        ...telemetryData,
-        template: template.value,
-      },
+      additionalProperties: { ...telemetryData },
     });
   }
 

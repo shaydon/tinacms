@@ -1,5 +1,31 @@
 # tinacms
 
+## 3.2.0
+
+### Minor Changes
+
+- [#6286](https://github.com/tinacms/tinacms/pull/6286) [`a63401a`](https://github.com/tinacms/tinacms/commit/a63401a3dd8271258bc6bfb4cc22593c19e94c7d) Thanks [@joshbermanssw](https://github.com/joshbermanssw)! - ✨ Half-width property for text fields in TinaCMS Editor
+
+### Patch Changes
+
+- Updated dependencies [[`a63401a`](https://github.com/tinacms/tinacms/commit/a63401a3dd8271258bc6bfb4cc22593c19e94c7d)]:
+  - @tinacms/schema-tools@2.2.0
+  - @tinacms/mdx@2.0.2
+  - @tinacms/search@1.1.9
+
+## 3.1.3
+
+### Patch Changes
+
+- [#6211](https://github.com/tinacms/tinacms/pull/6211) [`790c860`](https://github.com/tinacms/tinacms/commit/790c860ae85c3bdcb7d3c07321ed4032ebbb7b49) Thanks [@Pat-Stuart](https://github.com/Pat-Stuart)! - ✨ Visual element highlighting between iframe and form
+
+- [#6282](https://github.com/tinacms/tinacms/pull/6282) [`60814a3`](https://github.com/tinacms/tinacms/commit/60814a3b56f99843211ef144576109857ad6ba86) Thanks [@joshbermanssw](https://github.com/joshbermanssw)! - 💄 ui - increase default size of rich-text editor
+
+- [#6291](https://github.com/tinacms/tinacms/pull/6291) [`b0f55b5`](https://github.com/tinacms/tinacms/commit/b0f55b511426ebf772d9f06645804f2319f9f9a2) Thanks [@brookjeynes-ssw](https://github.com/brookjeynes-ssw)! - fix: update date-fs and related types
+
+- Updated dependencies []:
+  - @tinacms/search@1.1.8
+
 ## 3.1.2
 
 ### Patch Changes
