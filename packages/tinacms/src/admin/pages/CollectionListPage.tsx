@@ -58,6 +58,7 @@ import {
 import type { RouteMappingPlugin } from '../plugins/route-mapping';
 import type {
   CollectionResponse,
+  DocumentNode,
   DocumentSys,
   TemplateResponse,
 } from '../types';
@@ -71,10 +72,14 @@ const TemplateMenu = ({
   templates,
   folder,
   collectionName,
+  archetypeDocs,
+  navigateToDuplicate,
 }: {
   collectionName: string;
   templates: TemplateResponse[];
   folder: CollectionFolder;
+  archetypeDocs: Map<string | null, DocumentNode>;
+  navigateToDuplicate: (document: DocumentSys) => Promise<any>;
 }) => {
   return (
     <Menu as='div' className='relative inline-block text-left w-full md:w-auto'>
@@ -99,25 +104,12 @@ const TemplateMenu = ({
                 {templates.map((template) => (
                   <MenuItem key={`${template.label}-${template.name}`}>
                     {({ focus }) => (
-                      <Link
-                        to={`/${
-                          folder.fullyQualifiedName
-                            ? [
-                                'collections',
-                                'new',
-                                collectionName,
-                                template.name,
-                                '~',
-                                folder.name,
-                              ].join('/')
-                            : [
-                                'collections',
-                                'new',
-                                collectionName,
-                                template.name,
-                              ].join('/')
-                        }`}
-                        // to={`${template.name}/new`}
+                      <NewDocumentLink
+                        folder={folder}
+                        collectionName={collectionName}
+                        templateName={template.name}
+                        archetypeDocs={archetypeDocs}
+                        navigateToDuplicate={navigateToDuplicate}
                         className={`w-full text-md px-4 py-2 tracking-wide flex items-center transition ease-out duration-100 ${
                           focus
                             ? 'text-blue-600 opacity-100 bg-gray-50'
@@ -125,7 +117,7 @@ const TemplateMenu = ({
                         }`}
                       >
                         {template.label}
-                      </Link>
+                      </NewDocumentLink>
                     )}
                   </MenuItem>
                 ))}
@@ -138,6 +130,57 @@ const TemplateMenu = ({
   );
 };
 
+const NewDocumentLink = ({
+  folder,
+  collectionName,
+  templateName,
+  archetypeDocs,
+  navigateToDuplicate,
+  className,
+  children,
+}: {
+  folder: CollectionFolder;
+  collectionName: string;
+  templateName: string | null;
+  archetypeDocs: Map<string | null, DocumentNode>;
+  navigateToDuplicate: (document: DocumentSys) => Promise<any>;
+  className: string;
+  children: React.ReactNode;
+}) =>
+  archetypeDocs.has(templateName) ? (
+    <a
+      onClick={() => {
+        navigateToDuplicate(archetypeDocs.get(templateName).node);
+      }}
+      className={`cursor-pointer ${className}`}
+    >
+      {children}
+    </a>
+  ) : (
+    <Link
+      to={`/${
+        folder.fullyQualifiedName
+          ? [
+              'collections',
+              'new',
+              collectionName,
+              ...(templateName ? [templateName] : []),
+              '~',
+              folder.name,
+            ].join('/')
+          : [
+              'collections',
+              'new',
+              collectionName,
+              ...(templateName ? [templateName] : []),
+            ].join('/')
+      }`}
+      className={className}
+    >
+      {children}
+    </Link>
+  );
+
 export const handleNavigate = async (
   navigate: NavigateFunction,
   cms: TinaCMS,
@@ -145,7 +188,8 @@ export const handleNavigate = async (
   collection: CollectionResponse,
   // The actual Collection definition
   collectionDefinition: Collection<true>,
-  document: DocumentSys
+  document: DocumentSys,
+  action: 'edit' | 'duplicate' = 'edit'
 ) => {
   /**
    * Retrieve the RouteMapping Plugin
@@ -176,7 +220,9 @@ export const handleNavigate = async (
       routeOverride = routeOverride.slice(1);
     }
     tinaPreview
-      ? navigate(`/~${basePath ? `/${basePath}` : ''}/${routeOverride}`)
+      ? navigate(
+          `${action === 'duplicate' ? '/duplicate' : ''}/~${basePath ? `/${basePath}` : ''}/${routeOverride}`
+        )
       : (window.location.href = `${
           basePath ? `/${basePath}` : ''
         }/${routeOverride}`);
@@ -184,7 +230,7 @@ export const handleNavigate = async (
   } else {
     const pathToDoc = document._sys.breadcrumbs;
     navigate(
-      `/${['collections', 'edit', collection.name, ...pathToDoc].join('/')}`,
+      `/${['collections', action, collection.name, ...pathToDoc].join('/')}`,
       { replace: true }
     );
   }
@@ -205,6 +251,22 @@ function getUniqueTemplateFields(collection: Collection<true>): TinaField[] {
 
   return [...fieldSet];
 }
+
+const getArchetypeDocuments = (documents: DocumentNode[]) =>
+  new Map<string | null, DocumentNode>(
+    documents
+      .map<[RegExpMatchArray | null, DocumentNode]>((doc) => [
+        doc.node._sys?.filename.match(
+          /^ARCHETYPE(?:\.(?<templateName>.+))?$/
+        ) || null,
+        doc,
+      ])
+      .filter(([matches, doc]) => matches && doc.node.__typename !== 'Folder')
+      .map<[string | null, DocumentNode]>(([matches, doc]) => [
+        matches.groups.templateName || null,
+        doc,
+      ])
+  );
 
 const CollectionListPage = () => {
   const navigate = useNavigate();
@@ -365,6 +427,17 @@ const CollectionListPage = () => {
                     ?.createNestedFolder ?? true;
 
                 const folderView = folder.fullyQualifiedName !== '';
+
+                const archetypeDocs = getArchetypeDocuments(documents);
+                const navigateToDuplicate = (doc) =>
+                  handleNavigate(
+                    navigate,
+                    cms,
+                    collection,
+                    collectionDefinition,
+                    doc,
+                    'duplicate'
+                  );
 
                 return (
                   <>
@@ -720,27 +793,17 @@ const CollectionListPage = () => {
                               )}
                               {!collection.templates && (
                                 <>
-                                  <Link
-                                    to={`/${
-                                      folder.fullyQualifiedName
-                                        ? [
-                                            'collections',
-                                            'new',
-                                            collectionName,
-                                            '~',
-                                            folder.name,
-                                          ].join('/')
-                                        : [
-                                            'collections',
-                                            'new',
-                                            collectionName,
-                                          ].join('/')
-                                    }`}
+                                  <NewDocumentLink
+                                    folder={folder}
+                                    collectionName={collectionName}
+                                    templateName={null}
+                                    archetypeDocs={archetypeDocs}
+                                    navigateToDuplicate={navigateToDuplicate}
                                     className='inline-flex items-center font-medium focus:ring-2 focus:outline-none focus:ring-tina-orange-dark focus:shadow-outline text-center rounded justify-center transition-all duration-150 ease-out whitespace-nowrap shadow text-white bg-tina-orange-dark hover:bg-tina-orange w-full md:w-auto text-sm h-10 px-6'
                                   >
                                     <FaFile className='mr-2' />
                                     Add File
-                                  </Link>
+                                  </NewDocumentLink>
                                 </>
                               )}
                               {collection.templates && (
@@ -748,6 +811,8 @@ const CollectionListPage = () => {
                                   collectionName={collectionName}
                                   templates={collection.templates}
                                   folder={folder}
+                                  archetypeDocs={archetypeDocs}
+                                  navigateToDuplicate={navigateToDuplicate}
                                 />
                               )}
                             </div>
