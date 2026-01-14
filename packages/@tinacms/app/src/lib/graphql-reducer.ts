@@ -19,6 +19,7 @@ import {
   TinaState,
   resolveField,
   useCMS,
+  augmentFormConfigForCreation
 } from 'tinacms';
 import { z } from 'zod';
 import { FormifyCallback, createForm, createGlobalForm } from './build-form';
@@ -165,7 +166,8 @@ const isFulfilled = <T>(
 
 export const useGraphQLReducer = (
   iframe: React.MutableRefObject<HTMLIFrameElement>,
-  url: string
+  url: string,
+  action: 'edit' | 'duplicate' = 'edit'
 ) => {
   const cms = useCMS();
   const tinaSchema = cms.api.tina.schema as TinaSchema;
@@ -401,6 +403,7 @@ export const useGraphQLReducer = (
                 tinaSchema,
                 payloadId: payload.id,
                 cms,
+                action
               });
               form.subscribe(
                 () => {
@@ -681,11 +684,20 @@ const onSubmit = async (
   collection: Collection<true>,
   relativePath: string,
   payload: Record<string, unknown>,
-  cms: TinaCMS
+  cms: TinaCMS,
+  action: 'edit' | 'duplicate'
 ) => {
   const tinaSchema = cms.api.tina.schema;
   try {
-    const mutationString = `#graphql
+    const mutationString = action === 'duplicate' ?
+      `#graphql
+        mutation CreateDocument($collection: String!, $relativePath: String!, $params: DocumentMutation!) {
+          createDocument(collection: $collection, relativePath: $relativePath, params: $params) {
+            __typename
+          }
+        }
+      ` :
+      `#graphql
       mutation UpdateDocument($collection: String!, $relativePath: String!, $params: DocumentUpdateMutation!) {
         updateDocument(collection: $collection, relativePath: $relativePath, params: $params) {
           __typename
@@ -703,11 +715,13 @@ const onSubmit = async (
     cms.alerts.success('Document saved!');
   } catch (e) {
     cms.alerts.error(() =>
-      ErrorDialog({
-        title: 'There was a problem saving your document',
-        message: 'Tina caught an error while updating the page',
-        error: e,
-      })
+      e.message.includes('already exists')
+        ? 'There was a problem saving your document. The "Filename" is already used for another document, please modify it.'
+        : ErrorDialog({
+            title: 'There was a problem saving your document.',
+            message: `Tina caught an error while ${action === 'duplicate' ? 'creating' : 'updating'} the page`,
+            error: e,
+          })
     );
     console.error(e);
   }
@@ -1006,11 +1020,13 @@ const buildForm = ({
   tinaSchema,
   payloadId,
   cms,
+  action = 'edit'
 }: {
   resolvedDocument: ResolvedDocument;
   tinaSchema: TinaSchema;
   payloadId: string;
   cms: TinaCMS;
+  action: 'edit' | 'duplicate';
 }) => {
   const { template, collection } = getTemplateForDocument(
     resolvedDocument,
@@ -1019,18 +1035,32 @@ const buildForm = ({
   const id = resolvedDocument._internalSys.path;
   let form: Form | undefined;
   let shouldRegisterForm = true;
-  const formConfig: FormOptions<any> = {
+  let formConfig: FormOptions<any> = {
     id,
     initialValues: resolvedDocument._internalValues,
     fields: template.fields.map((field) => resolveField(field, tinaSchema)),
     onSubmit: (payload) =>
       onSubmit(
         collection,
-        resolvedDocument._internalSys.relativePath,
+        action === 'duplicate'
+          ? getNewRelativePath(resolvedDocument, payload.filename)
+          : resolvedDocument._internalSys.relativePath,
         payload,
-        cms
+        cms,
+        action
       ),
     label: collection.label || collection.name,
+  };
+  if (action === 'duplicate') {
+    formConfig = augmentFormConfigForCreation(
+      tinaSchema,
+      collection,
+      collection,
+      template,
+      '',
+      () => form,
+      formConfig
+    )
   };
   if (tinaSchema.config.config?.formifyCallback) {
     const callback = tinaSchema.config.config
@@ -1071,3 +1101,14 @@ const buildForm = ({
   }
   return { template, form };
 };
+
+const getNewRelativePath = ({_internalSys}: ResolvedDocument, filename: string) =>
+  `${
+    filename.startsWith('/')
+      ? ''
+      : _internalSys.breadcrumbs.slice(0, -1).join('/') + '/'
+   }${
+    filename
+   }${
+    _internalSys.extension
+   }`;
