@@ -1,5 +1,24 @@
 # tinacms
 
+## 3.3.2
+
+### Patch Changes
+
+- [#6362](https://github.com/tinacms/tinacms/pull/6362) [`6647240`](https://github.com/tinacms/tinacms/commit/6647240db6cfffcf1efb4fa9799e9c039b929389) Thanks [@Calinator444](https://github.com/Calinator444)! - 🐛Bug Fix - Prevent user from editing read only fields when slugify method provided
+
+- Updated dependencies [[`1d4fb88`](https://github.com/tinacms/tinacms/commit/1d4fb88f5dded126cf3c3796e42d26ffb4b62a3a)]:
+  - @tinacms/schema-tools@2.4.0
+  - @tinacms/mdx@2.0.4
+  - @tinacms/search@1.2.1
+
+## 3.3.1
+
+### Patch Changes
+
+- [#6346](https://github.com/tinacms/tinacms/pull/6346) [`3fa216c`](https://github.com/tinacms/tinacms/commit/3fa216c110af6417e6b835c49a275b08981e028b) Thanks [@JackDevAU](https://github.com/JackDevAU)! - Revert "✨ Visual element highlighting between iframe and form (#6211)"
+
+- [#6348](https://github.com/tinacms/tinacms/pull/6348) [`7352c96`](https://github.com/tinacms/tinacms/commit/7352c9660869d413a0f48d3fbb003d4c4c0e3d85) Thanks [@wicksipedia](https://github.com/wicksipedia)! - Branch selector - added ability to filter based off PR number
+
 ## 3.3.0
 
 ### Minor Changes

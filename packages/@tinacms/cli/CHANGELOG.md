@@ -1,5 +1,26 @@
 # tinacms-cli
 
+## 2.1.2
+
+### Patch Changes
+
+- Updated dependencies [[`1d4fb88`](https://github.com/tinacms/tinacms/commit/1d4fb88f5dded126cf3c3796e42d26ffb4b62a3a), [`cc9c8bd`](https://github.com/tinacms/tinacms/commit/cc9c8bd96545bd3be20a3d13c0f463e1f71391b2), [`6647240`](https://github.com/tinacms/tinacms/commit/6647240db6cfffcf1efb4fa9799e9c039b929389)]:
+  - @tinacms/schema-tools@2.4.0
+  - @tinacms/graphql@2.1.0
+  - tinacms@3.3.2
+  - @tinacms/search@1.2.1
+  - @tinacms/app@2.3.22
+
+## 2.1.1
+
+### Patch Changes
+
+- [#6346](https://github.com/tinacms/tinacms/pull/6346) [`3fa216c`](https://github.com/tinacms/tinacms/commit/3fa216c110af6417e6b835c49a275b08981e028b) Thanks [@JackDevAU](https://github.com/JackDevAU)! - Revert "✨ Visual element highlighting between iframe and form (#6211)"
+
+- Updated dependencies [[`3fa216c`](https://github.com/tinacms/tinacms/commit/3fa216c110af6417e6b835c49a275b08981e028b), [`7352c96`](https://github.com/tinacms/tinacms/commit/7352c9660869d413a0f48d3fbb003d4c4c0e3d85)]:
+  - tinacms@3.3.1
+  - @tinacms/app@2.3.21
+
 ## 2.1.0
 
 ### Minor Changes

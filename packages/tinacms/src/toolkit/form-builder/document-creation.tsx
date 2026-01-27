@@ -70,19 +70,22 @@ export const augmentFormConfigForCreation = (
     }
   }
 
+  const fileReadOnly = schemaCollection?.ui?.filename?.readonly;
+
   const filenameField = {
     name: 'filename',
     label: 'Filename',
-    component: slugFunction
-      ? wrapFieldsWithMeta(({ field, input, meta }) => {
-          return (
-            <FilenameInput
-              readOnly={schemaCollection?.ui?.filename?.readonly}
-              {...input}
-            />
-          );
-        })
-      : 'text',
+    component:
+      slugFunction && !fileReadOnly
+        ? wrapFieldsWithMeta(({ field, input, meta }) => {
+            return (
+              <FilenameInput
+                readOnly={schemaCollection?.ui?.filename?.readonly}
+                {...input}
+              />
+            );
+          })
+        : 'text',
     disabled: schemaCollection?.ui?.filename?.readonly,
     description: collection.ui?.filename?.description ? (
       <span
@@ -146,12 +149,6 @@ export const augmentFormConfigForCreation = (
           schemaCollection.path +
           appendFolder +
           `${filename}.${schemaCollection.format || 'md'}`;
-        console.log('CREATE CONFIG', {
-          filename: filename,
-          folderName: folderName,
-          path: form.path,
-          relativePath: form.relativePath,
-        });
       }
       if (
         slugFunction &&
